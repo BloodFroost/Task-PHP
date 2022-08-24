@@ -76,7 +76,7 @@ CREATE TABLE `a_product_category` (
 --
 
 CREATE TABLE `a_property` (
-  `product_id` int(11) NOT NULL,
+  `property_id` int(11) NOT NULL,
   `product` varchar(255) NOT NULL,
   `property_value` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
