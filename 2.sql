@@ -104,13 +104,6 @@ ALTER TABLE `a_product`
   ADD PRIMARY KEY (`product_id`);
 
 --
--- Индексы таблицы `a_product_category`
---
-ALTER TABLE `a_product_category`
-  ADD PRIMARY KEY (`product_id`,`category_id`),
-  ADD KEY `category_id` (`category_id`);
-
---
 -- Индексы таблицы `a_property`
 --
 ALTER TABLE `a_property`
