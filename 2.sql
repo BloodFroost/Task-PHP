@@ -28,10 +28,9 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `a_category` (
-  `id` int(11) NOT NULL
-  `category_id` int(11) NOT NULL,
-  `key` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
+  `id` int(11) NOT NULL,
+  `code` int(10) UNSIGNED DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
   `parent id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -42,7 +41,7 @@ CREATE TABLE `a_category` (
 --
 
 CREATE TABLE `a_price` (
-  `id` int(11) NOT NULL
+  `id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
   `price_type` varchar(255) NOT NULL,
   `price` int(11) NOT NULL
@@ -55,10 +54,9 @@ CREATE TABLE `a_price` (
 --
 
 CREATE TABLE `a_product` (
-  `id` int(11) NOT NULL
-  `product_id` int(11) NOT NULL,
-  `key` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL
+  `id` int(11) NOT NULL,
+  `code` int(10) UNSIGNED DEFAULT NULL,
+  `title` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -151,7 +149,7 @@ ALTER TABLE `a_product`
 -- AUTO_INCREMENT для таблицы `a_product_category`
 --
 ALTER TABLE `a_product_category`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `a_property`
