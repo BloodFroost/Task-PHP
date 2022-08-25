@@ -28,6 +28,7 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `a_category` (
+  `id` int(11) NOT NULL
   `category_id` int(11) NOT NULL,
   `key` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -41,6 +42,7 @@ CREATE TABLE `a_category` (
 --
 
 CREATE TABLE `a_price` (
+  `id` int(11) NOT NULL
   `product_id` int(11) NOT NULL,
   `price_type` varchar(255) NOT NULL,
   `price` int(11) NOT NULL
@@ -53,6 +55,7 @@ CREATE TABLE `a_price` (
 --
 
 CREATE TABLE `a_product` (
+  `id` int(11) NOT NULL
   `product_id` int(11) NOT NULL,
   `key` int(11) NOT NULL,
   `name` varchar(255) NOT NULL
@@ -65,6 +68,7 @@ CREATE TABLE `a_product` (
 --
 
 CREATE TABLE `a_product_category` (
+  `id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
   `category_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -76,10 +80,13 @@ CREATE TABLE `a_product_category` (
 --
 
 CREATE TABLE `a_property` (
-  `property_id` int(11) NOT NULL,
-  `product` varchar(255) NOT NULL,
-  `property_value` int(11) NOT NULL
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `property` varchar(255) NOT NULL,
+  `unit` varchar(255) DEFAULT NULL,
+  `value` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 --
 -- Индексы сохранённых таблиц
@@ -89,25 +96,34 @@ CREATE TABLE `a_property` (
 -- Индексы таблицы `a_category`
 --
 ALTER TABLE `a_category`
-  ADD PRIMARY KEY (`category_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Индексы таблицы `a_price`
 --
 ALTER TABLE `a_price`
-  ADD PRIMARY KEY (`product_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Индексы таблицы `a_product`
 --
 ALTER TABLE `a_product`
-  ADD PRIMARY KEY (`product_id`);
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `a_product_category`
+--
+ALTER TABLE `a_product_category`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `product_id` (`product_id`),
+  ADD KEY `category_id` (`category_id`);
+
 
 --
 -- Индексы таблицы `a_property`
 --
 ALTER TABLE `a_property`
-  ADD PRIMARY KEY (`product_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- AUTO_INCREMENT для сохранённых таблиц
@@ -117,27 +133,48 @@ ALTER TABLE `a_property`
 -- AUTO_INCREMENT для таблицы `a_category`
 --
 ALTER TABLE `a_category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `a_price`
 --
 ALTER TABLE `a_price`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `a_product`
 --
 ALTER TABLE `a_product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `a_product_category`
+--
+ALTER TABLE `a_product_category`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT для таблицы `a_property`
 --
 ALTER TABLE `a_property`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `a_price`
+  ADD CONSTRAINT `a_price_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `a_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+--
+-- Ограничения внешнего ключа таблицы `a_product_category`
+--
+ALTER TABLE `a_product_category`
+  ADD CONSTRAINT `a_product_category_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `a_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `a_product_category_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `a_category` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `a_property`
+--
+ALTER TABLE `a_property`
+  ADD CONSTRAINT `a_property_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `a_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
