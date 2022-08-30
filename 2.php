@@ -44,3 +44,94 @@ $a = [
 ];
 $b='b';
 print_r(mySortForKey($a,$b));
+
+// Реализовать функцию importXml($a). $a – путь к xml файлу (структура файла приведена ниже). 
+// Результат ее выполнения: прочитать файл $a и импортировать его в созданную БД.
+
+function  importXml($a)
+{
+
+    $host     = 'localhost';
+    $database = 'test_samson';
+    $user     = 'root';
+    $password = 'root';
+
+    // подключаемся к серверу
+    $db = mysqli_connect($host, $user, $password, $database)
+        or die("Ошибка " . mysqli_error($db));
+
+
+    $data = simplexml_load_file($a);
+
+    //Товары
+    foreach ($data->Товар as $product) {
+
+        $query = "INSERT INTO a_product VALUES(NULL, " . $product['Код'] . ", \"" . $product['Название'] . "\")";
+
+        $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
+        $idProduct = mysqli_insert_id($db);
+        if (!$result) throw new Exception('Товар не добавлен в БД');
+
+
+        //Цены
+        foreach ($product->Цена as $price) {
+
+            $query = "INSERT INTO a_price VALUES(NULL, $idProduct, \"" . $price['Тип'] . "\", \"" . $price . "\")";
+
+            $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
+            if (!$result) throw new Exception('Цены не добавлены в БД');
+        }
+
+
+        //Свойства
+        foreach ($product->Свойства->children() as $property) {
+
+            ($property['ЕдИзм'] == NULL) ? $unit = "NULL" : $unit = (string)$property['ЕдИзм'];
+
+            $query = "INSERT INTO a_property VALUES(NULL, $idProduct, \"" . $property->getName() . "\", \"" . $unit . "\", \"" . $property . "\")";
+
+            $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
+            if (!$result) throw new Exception('Свойства не добавлены в БД');
+        }
+
+        //Разделы
+        foreach ($product->Разделы->Раздел as $section) {
+            $parent_id = 0;
+            // Если категории не присвоен код сохраняем в таблице NULL
+            ($section['Код'] == NULL) ? $code = "NULL" : $code = (string)$section['Код'];
+
+            //Проверяем есть ли указанныая категория в базе данных
+            // если нет добавляем ее в таблицу с категориями
+            $query = "SELECT id FROM a_category
+             WHERE title like \"" . $section . "\"
+             AND code " . (($code == "NULL") ? "IS NULL" : ("like" . $code)) . " LIMIT 1";
+            $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
+            if (!$result) throw new Exception('При проверке категории возникла ошибка');
+            $idCategory = mysqli_fetch_row($result)[0];
+
+            if ($idCategory == NULL) {
+               
+                $query = "INSERT INTO a_category VALUES(NULL, " . $code . ", \"" . $section . "\", $parent_id)";
+                
+                $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
+                if (!$result) throw new Exception('Категория не добавлены в БД');
+                $idCategory = mysqli_insert_id($db);
+            }
+
+
+            //Проверяем есть ли вложенные категории
+            if ($section->children()->count() < 0) {
+
+                //добавим товар в категорию
+                $query = "INSERT INTO a_product_category VALUES(NULL, $idProduct, $idCategory)";
+
+                $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
+                if (!$result) throw new Exception('Товар не добавлен в категорию');
+            }
+        }
+    }
+
+    mysqli_close($db);
+}
+// $a = '2.xml';
+// importXml($a);
