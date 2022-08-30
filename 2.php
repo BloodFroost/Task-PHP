@@ -135,3 +135,113 @@ function  importXml($a)
 }
 // $a = '2.xml';
 // importXml($a);
+
+// Реализовать функцию exportXml($a, $b). 
+// $a – путь к xml файлу вида (структура файла приведена ниже), $b – код рубрики.
+//  Результат ее выполнения: выбрать из БД товары (и их характеристики, необходимые для формирования файла)
+//  выходящие в рубрику $b или в любую из всех вложенных в нее рубрик, сохранить результат в файл $a.
+
+function exportXml($a, $b)
+{
+    ini_set('display_errors', 1);
+    error_reporting(E_ALL ^ E_NOTICE);
+    $conn = mysqli_connect("localhost", "root", "root", "test_samson");
+    if ($conn->connect_error) {
+        die("Ошибка подключения " . $conn->connect_error);
+    }
+
+    $stmt = $conn->prepare("SELECT *
+                            FROM a_product_category 
+                            JOIN a_category ON a_product_category.category_id = a_category.id
+                            WHERE a_category.id = ?");    // Выбираю товары по id рубрики
+
+    $stmt->bind_param('s', $b);
+    $stmt->execute();
+
+
+    $dom = new domDocument("1.0", "utf-8");
+    $products = $dom->appendChild($dom->createElement('Товары'));
+
+
+    while ($result = $stmt->get_result()) {
+        foreach ($result as $item) {
+
+            $product = $products->appendChild($dom->createElement('Товар'));
+
+            $aProduct = $conn->prepare("SELECT *
+                            FROM a_product_category  
+                            JOIN a_product ON a_product_category.product_id = a_product.id
+                            WHERE a_product.id = ?");
+
+            $aProduct->bind_param('s', $item['product_id']);
+            $aProduct->execute();
+            while ($rows = $aProduct->get_result()) {
+                foreach ($rows as $row)
+
+                    $product->setAttribute('Код', $row['code']);
+                $product->setAttribute('Название', $row['title']);
+            }
+            // Получение Цен
+            $stmt = $conn->prepare("SELECT a_price.price_type, a_price.price
+                           FROM a_price WHERE a_price.product_id = ?");
+            $stmt->bind_param('s', $item['product_id']);
+            $stmt->execute();
+
+            // Создание тегов "Цена"
+            while ($values = $stmt->get_result()) {
+                foreach ($values as $value) {
+                    $price = $dom->createElement('Цена', $value['price']);
+                    $price->setAttribute('Тип', $value['price_type']);
+                    $product->appendChild($price);
+                }
+            }
+
+
+            // Получение свойств
+            $stmt = $conn->prepare("SELECT *
+                                    FROM a_property WHERE a_property.product_id = ?");
+            $stmt->bind_param('s', $item['product_id']);
+            $stmt->execute();
+            $properties = $product->appendChild($dom->createElement('Свойства'));
+
+            // Создание тегов "Свойства"
+            while ($values = $stmt->get_result()) {
+                foreach ($values as $value) {
+                    $propertyName = $value['property'];
+                    $propertyValue = $value['value'];
+                    $propertyUnit = $value['unit'];
+
+                    if ($propertyUnit === '%') {            // Проверяет наличие единицы измерения в конце строки
+                        $propertyValue = $propertyValue . ' ' . $propertyUnit;
+                        $property = $dom->createElement($propertyName, $propertyValue);
+                        $property->setAttribute('ЕдИзм', $propertyUnit);
+                    } else {
+                        $property = $dom->createElement($propertyName, $propertyValue);
+                    }
+                    $properties->appendChild($property);
+                }
+            }
+            // Получение категорий
+            $stmt = $conn->prepare("SELECT a_category.title
+                                  FROM a_category
+                                  JOIN a_product ON a_product.id = a_category.id
+                                  WHERE a_product.title = ?");
+            $stmt->bind_param('s', $item['title']);
+            $stmt->execute();
+            $categories = $product->appendChild(($dom->createElement('Разделы')));
+
+            // Создание тегов "Категории"
+            while ($values = $stmt->get_result()) {
+                foreach ($values as $value) {
+                    $category = $dom->createElement('Раздел', $value['title']);
+                    $categories->appendChild($category);
+                }
+            }
+        }
+    }
+
+    $dom->save($a);
+    $conn->close();
+}
+
+exportXml('exportXml.xml', 1);
