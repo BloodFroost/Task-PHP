@@ -31,7 +31,7 @@ CREATE TABLE `a_category` (
   `id` int(11) NOT NULL,
   `code` int(10) UNSIGNED DEFAULT NULL,
   `title` varchar(255) NOT NULL,
-  `parent id` int(11) NOT NULL
+  `parent_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
