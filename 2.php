@@ -66,7 +66,7 @@ function  importXml($a)
     //Товары
     foreach ($data->Товар as $product) {
 
-        $query = "INSERT INTO a_product VALUES(NULL, " . $product['Код'] . ", \"" . $product['Название'] . "\")";
+        $query = "INSERT INTO a_product VALUES(NULL, $product[Код], \" $product[Название] \")";
 
         $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
         $idProduct = mysqli_insert_id($db);
@@ -76,7 +76,7 @@ function  importXml($a)
         //Цены
         foreach ($product->Цена as $price) {
 
-            $query = "INSERT INTO a_price VALUES(NULL, $idProduct, \"" . $price['Тип'] . "\", \"" . $price . "\")";
+            $query = "INSERT INTO a_price VALUES(NULL, $idProduct, \" $price[Тип] \", \" $price \")";
 
             $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
             if (!$result) throw new Exception('Цены не добавлены в БД');
@@ -88,7 +88,7 @@ function  importXml($a)
 
             ($property['ЕдИзм'] == NULL) ? $unit = "NULL" : $unit = (string)$property['ЕдИзм'];
 
-            $query = "INSERT INTO a_property VALUES(NULL, $idProduct, \"" . $property->getName() . "\", \"" . $unit . "\", \"" . $property . "\")";
+            $query = "INSERT INTO a_property VALUES(NULL, $idProduct, \" $property->getName() \", \" $unit\", \"$property\")";
 
             $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
             if (!$result) throw new Exception('Свойства не добавлены в БД');
@@ -103,16 +103,16 @@ function  importXml($a)
             //Проверяем есть ли указанныая категория в базе данных
             // если нет добавляем ее в таблицу с категориями
             $query = "SELECT id FROM a_category
-             WHERE title like \"" . $section . "\"
+             WHERE title like \"$section\"
              AND code " . (($code == "NULL") ? "IS NULL" : ("like" . $code)) . " LIMIT 1";
             $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
             if (!$result) throw new Exception('При проверке категории возникла ошибка');
             $idCategory = mysqli_fetch_row($result)[0];
 
             if ($idCategory == NULL) {
-               
-                $query = "INSERT INTO a_category VALUES(NULL, " . $code . ", \"" . $section . "\", $parent_id)";
-                
+
+                $query = "INSERT INTO a_category VALUES(NULL, $code , \"$section\", $parent_id)";
+
                 $result = mysqli_query($db, $query) or die("Ошибка " . mysqli_error($db));
                 if (!$result) throw new Exception('Категория не добавлены в БД');
                 $idCategory = mysqli_insert_id($db);
